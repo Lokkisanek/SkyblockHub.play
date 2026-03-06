@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        background-color: #101010;
+        color: #d1d1d1;
+    }
+
+    /* Dense scrollbar for the data-dashboard feel */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #101010;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #303030;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #404048;
+    }
+}
