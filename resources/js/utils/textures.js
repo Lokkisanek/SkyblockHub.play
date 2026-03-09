@@ -46,6 +46,7 @@ export const SKILL_ICONS = {
     taming:       '🐾',
     runecrafting: '🔮',
     social:       '🎉',
+    hunting:      '🪶',
 };
 
 /* ── Slayer icons ────────────────────────────────────── */

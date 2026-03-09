@@ -5,9 +5,10 @@
  *   - Centered pixelated item texture with drop-shadow
  *   - Animated shine overlay for common→legendary
  *   - White hover overlay
- *   - MC-style lore tooltip (teleported to body)
+ *   - MC-style lore tooltip (SkyCrypt rendering with CSS variables)
+ *   - Click-to-pin tooltip for text selection / copying
  */
-import { computed, ref, inject } from 'vue';
+import { computed, ref, inject, nextTick, onBeforeUnmount } from 'vue';
 import { getItemTextureUrl } from '@/utils/textures';
 
 const props = defineProps({
@@ -15,7 +16,9 @@ const props = defineProps({
 });
 
 const showTooltip = ref(false);
+const pinned      = ref(false);
 const tooltipPos  = ref({ x: 0, y: 0 });
+const tooltipRef  = ref(null);
 const textureVersion = inject('textureVersion', ref(0));
 
 const textureUrl = computed(() => {
@@ -29,6 +32,12 @@ const rarityBgClass = computed(() => {
     return 'piece-bg-' + props.item.rarity.toLowerCase().replace(/ /g, '_');
 });
 
+/* Rarity → foreground CSS class */
+const rarityFgClass = computed(() => {
+    if (!props.item?.rarity) return '';
+    return 'piece-fg-' + props.item.rarity.toLowerCase().replace(/ /g, '_');
+});
+
 /* Shine animation for common → legendary (index 0–4, matching SkyCrypt) */
 const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','mythic','divine','special','very_special'];
 const showShine = computed(() => {
@@ -37,27 +46,98 @@ const showShine = computed(() => {
     return idx >= 0 && idx <= 4;
 });
 
-/* Rarity name color (MC §-code colors) */
-const RARITY_COLORS = {
-    common: '#ffffff', uncommon: '#55ff55', rare: '#5555ff', epic: '#aa00aa',
-    legendary: '#ffaa00', mythic: '#ff55ff', divine: '#55ffff',
-    special: '#ff5555', very_special: '#ff5555',
-};
-const nameColor = computed(() => {
-    if (!props.item?.rarity) return '#ffffff';
-    return RARITY_COLORS[props.item.rarity.toLowerCase()] || '#ffffff';
-});
+function onMouseEnter(e) {
+    if (props.item && !pinned.value) {
+        showTooltip.value = true;
+        updatePos(e);
+    }
+}
 
-function onMouseEnter(e) { if (props.item) { showTooltip.value = true; updatePos(e); } }
-function onMouseMove(e)  { updatePos(e); }
-function onMouseLeave()  { showTooltip.value = false; }
+function onMouseMove(e) {
+    if (!pinned.value) updatePos(e);
+}
+
+function onMouseLeave() {
+    if (!pinned.value) showTooltip.value = false;
+}
+
+/**
+ * Position the tooltip relative to cursor.
+ * Decides whether to show below or above the cursor based on viewport space.
+ */
 function updatePos(e) {
-    let x = e.clientX + 14;
-    let y = e.clientY + 14;
-    if (x + 370 > window.innerWidth)  x = e.clientX - 370 - 10;
-    if (y + 400 > window.innerHeight) y = window.innerHeight - 400 - 10;
+    const tooltipW = 380;   // max-width of .mc-lore-panel
+    const margin   = 14;
+
+    // Horizontal: prefer right of cursor, flip left if overflowing
+    let x = e.clientX + margin;
+    if (x + tooltipW > window.innerWidth) x = e.clientX - tooltipW - margin;
+
+    // Vertical: measure actual tooltip height if available, else estimate
+    const el = tooltipRef.value;
+    const tooltipH = el ? el.offsetHeight : 400;
+
+    let y;
+    const spaceBelow = window.innerHeight - e.clientY - margin;
+    const spaceAbove = e.clientY - margin;
+
+    if (spaceBelow >= tooltipH || spaceBelow >= spaceAbove) {
+        // Show below cursor (default)
+        y = e.clientY + margin;
+        // Clamp so bottom doesn't overflow
+        if (y + tooltipH > window.innerHeight) y = window.innerHeight - tooltipH - 4;
+    } else {
+        // Show above cursor
+        y = e.clientY - tooltipH - margin;
+    }
+
     tooltipPos.value = { x: Math.max(4, x), y: Math.max(4, y) };
 }
+
+/* Click to pin/unpin tooltip for text selection */
+function onItemClick(e) {
+    if (!props.item) return;
+
+    if (pinned.value) {
+        // Unpin
+        pinned.value = false;
+        showTooltip.value = false;
+        document.removeEventListener('mousedown', onOutsideClick, true);
+        document.removeEventListener('keydown', onEscKey, true);
+    } else {
+        // Pin at current position
+        showTooltip.value = true;
+        updatePos(e);
+        nextTick(() => {
+            pinned.value = true;
+            document.addEventListener('mousedown', onOutsideClick, true);
+            document.addEventListener('keydown', onEscKey, true);
+        });
+    }
+}
+
+function onOutsideClick(e) {
+    // If click is inside the pinned tooltip, allow it (for text selection)
+    if (tooltipRef.value && tooltipRef.value.contains(e.target)) return;
+    pinned.value = false;
+    showTooltip.value = false;
+    document.removeEventListener('mousedown', onOutsideClick, true);
+    document.removeEventListener('keydown', onEscKey, true);
+}
+
+function onEscKey(e) {
+    if (e.key === 'Escape') {
+        pinned.value = false;
+        showTooltip.value = false;
+        document.removeEventListener('mousedown', onOutsideClick, true);
+        document.removeEventListener('keydown', onEscKey, true);
+    }
+}
+
+onBeforeUnmount(() => {
+    document.removeEventListener('mousedown', onOutsideClick, true);
+    document.removeEventListener('keydown', onEscKey, true);
+});
 </script>
 
 <template>
@@ -71,7 +151,8 @@ function updatePos(e) {
          tabindex="0"
          @mouseenter="onMouseEnter"
          @mousemove="onMouseMove"
-         @mouseleave="onMouseLeave">
+         @mouseleave="onMouseLeave"
+         @click.stop="onItemClick">
 
         <!-- Shine overlay (common → legendary) -->
         <div v-if="showShine" class="piece-shine"></div>
@@ -106,14 +187,24 @@ function updatePos(e) {
             {{ '✪'.repeat(Math.min(item.stars, 5)) }}{{ item.stars > 5 ? '+' : '' }}
         </span>
 
-        <!-- MC-style lore tooltip (teleported to body) -->
+        <!-- MC-style lore tooltip (SkyCrypt-style, teleported to body) -->
         <Teleport to="body">
             <div v-if="showTooltip"
+                 ref="tooltipRef"
                  class="mc-lore-panel"
+                 :class="{ 'mc-lore-pinned': pinned }"
                  :style="{ left: tooltipPos.x + 'px', top: tooltipPos.y + 'px' }">
+                <!-- Item name header with rarity background & icon -->
                 <div class="mc-lore-name" :class="rarityBgClass">
-                    <span :style="{ color: nameColor }">{{ item.name }}</span>
+                    <div v-if="textureUrl" class="mc-lore-name-icon">
+                        <img :src="textureUrl"
+                             :alt="item.name"
+                             class="mc-lore-name-icon-img"
+                             draggable="false" />
+                    </div>
+                    <span class="mc-lore-name-text" :class="rarityFgClass">{{ item.name }}</span>
                 </div>
+                <!-- Lore body rendered with MC color CSS variables -->
                 <div class="mc-lore-body">
                     <div v-for="(line, i) in (item.lore_html || [])"
                          :key="i"

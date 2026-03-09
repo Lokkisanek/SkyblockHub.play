@@ -33,6 +33,36 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
+/*  Minecraft Color Code CSS Variables (SkyCrypt-style)           */
+/*  Nice-contrast variants for dark backgrounds                  */
+/* ═══════════════════════════════════════════════════════════════ */
+:root {
+    --mc-0: #6e6e6e;  /* black  → visible grey */
+    --mc-1: #3333ff;  /* dark blue */
+    --mc-2: #00b300;  /* dark green */
+    --mc-3: #0cb9ac;  /* dark aqua */
+    --mc-4: #b61e1e;  /* dark red */
+    --mc-5: #eb17eb;  /* dark purple */
+    --mc-6: #ffaa00;  /* gold */
+    --mc-7: #b8b8b8;  /* gray */
+    --mc-8: #999999;  /* dark gray */
+    --mc-9: #7486f0;  /* blue */
+    --mc-a: #5bda5b;  /* green */
+    --mc-b: #58d6ed;  /* aqua */
+    --mc-c: #fb5858;  /* red */
+    --mc-d: #fd64de;  /* light purple */
+    --mc-e: #f2f267;  /* yellow */
+    --mc-f: #ffffff;  /* white */
+}
+
+/* ── MC Formatting classes (matches SkyCrypt's §l, §o, etc.) ── */
+.mc-fmt-k { background-color: currentColor; border-radius: 0.25em; } /* obfuscated */
+.mc-fmt-l { font-weight: bold; }
+.mc-fmt-m { text-decoration: line-through; }
+.mc-fmt-n { text-decoration: underline; }
+.mc-fmt-o { font-style: italic; }
+
+/* ═══════════════════════════════════════════════════════════════ */
 /*  MC-style inventory system  (matching SkyCrypt's visual style) */
 /* ═══════════════════════════════════════════════════════════════ */
 
@@ -51,12 +81,18 @@
 .piece {
     position: relative;
     aspect-ratio: 1;
-    border-radius: 5px;
+    border-radius: 6px;
     user-select: none;
     cursor: pointer;
-    transition: box-shadow 0.2s ease-in-out;
+    transition: box-shadow 0.2s ease-in-out, transform 0.15s ease;
     box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0);
     content-visibility: auto;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.piece:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .piece:focus-visible {
@@ -178,8 +214,9 @@
 .inventory-slot {
     aspect-ratio: 1;
     position: relative;
-    background-color: rgba(255, 255, 255, 0.04);
-    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.025);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 /* ── Inventory grid (9 columns, SkyCrypt-style) ────────────── */
@@ -187,92 +224,91 @@
     display: grid;
     place-content: center center;
     --inv-w: clamp(300px, calc(100vw - 80px), 780px);
-    gap: calc(var(--inv-w) * 0.01);
-    padding: calc(var(--inv-w) * 0.01);
+    gap: calc(var(--inv-w) * 0.012);
+    padding: calc(var(--inv-w) * 0.015);
     grid-template-columns: repeat(9, calc(var(--inv-w) * 0.1));
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 .inventory-grid hr {
     all: unset;
     grid-column: 1 / 10;
-    height: calc(var(--inv-w) * 0.02);
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 2px 0;
 }
 
 /* ── Inventory container ───────────────────────────────────── */
 .inventory-container {
     display: inline-block;
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 22px;
     position: relative;
-    border-radius: 10px;
-    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* ── Inventory tab buttons ─────────────────────────────────── */
 .inv-tabs {
     position: relative;
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    margin-bottom: 8px;
-    border-bottom: 2px solid #0bca51;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .inv-tab {
     appearance: none;
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 12px;
-    margin-left: 4px;
-    border: none;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     cursor: pointer;
-    background: none;
-    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.45);
     white-space: nowrap;
-    transition: color 0.15s;
+    transition: all 0.15s ease;
     flex-shrink: 0;
 }
-.inv-tab:first-child { margin-left: 0; }
-.inv-tab::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    top: 100%;
-    background-color: #0bca51;
-    border-radius: 4px;
-    transition: height 0.15s, top 0.15s;
-}
-.inv-tab:hover::after,
-.inv-tab.active-tab::after {
-    height: 6px;
-    top: calc(100% - 2px);
+.inv-tab:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
 }
 .inv-tab.active-tab {
-    color: rgba(255, 255, 255, 1);
+    background: rgba(11, 202, 81, 0.1);
+    border-color: rgba(11, 202, 81, 0.35);
+    color: #0bca51;
     cursor: default;
+    box-shadow: 0 0 8px rgba(11, 202, 81, 0.08);
 }
 .inv-tab-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     border-radius: 2px;
+    opacity: 0.85;
+}
+.inv-tab.active-tab .inv-tab-icon {
+    opacity: 1;
 }
 
 /* ── Pieces flex container (for armor/equipment/weapons) ───── */
 .pieces {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
 }
 .pieces .piece {
     width: 64px;
@@ -292,16 +328,86 @@
     height: 100%;
 }
 
+/* ── Storage cards (backpack / enderchest page selectors) ──── */
+.storage-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.storage-card {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+.storage-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.85);
+}
+.storage-card-active {
+    background: rgba(11, 202, 81, 0.08) !important;
+    border-color: rgba(11, 202, 81, 0.3) !important;
+    color: white !important;
+}
+.storage-card-img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.4));
+    flex-shrink: 0;
+}
+.storage-card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 0;
+}
+.storage-card-name {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.storage-card-count {
+    font-size: 10px;
+    opacity: 0.55;
+    white-space: nowrap;
+}
+.storage-card-toggle {
+    font-size: 9px;
+    opacity: 0.4;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.storage-expanded {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 /* ── Wardrobe sets ─────────────────────────────────────────── */
 .wardrobe {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 .wardrobe-set {
     flex-shrink: 0;
     display: grid;
-    gap: 4px;
+    gap: 5px;
     grid-template-rows: repeat(4, 56px);
     width: 56px;
 }
@@ -311,8 +417,9 @@
 }
 .wardrobe-set .armor-placeholder {
     aspect-ratio: 1;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.025);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
     position: relative;
 }
 .wardrobe-set .armor-placeholder .placeholder-icon {
@@ -329,41 +436,107 @@
 
 /* ── Stat section header ───────────────────────────────────── */
 .stat-header {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-decoration: underline 3px #0bca51;
-    text-underline-offset: 8px;
-    margin-bottom: 16px;
-    padding-left: 4px;
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 14px;
+    padding-left: 2px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(11, 202, 81, 0.3);
 }
 
-/* ── MC-style lore tooltip panel ───────────────────────────── */
+/* ── MC-style lore tooltip panel (SkyCrypt-style) ──────────── */
 .mc-lore-panel {
     position: fixed;
     z-index: 9999;
     pointer-events: none;
     max-width: 380px;
     min-width: 200px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    background-color: rgba(12, 0, 16, 0.94);
-    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(14px);
+    background-color: rgba(12, 12, 14, 0.96);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.12s ease;
 }
+
+/* Pinned tooltip: interactive, text selectable, subtle visual cue */
+.mc-lore-panel.mc-lore-pinned {
+    pointer-events: auto;
+    user-select: text;
+    -webkit-user-select: text;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1.5px rgba(11, 202, 81, 0.25);
+    cursor: text;
+}
+
+/* ── Tooltip header (item name + icon, rarity-colored bg) ──── */
 .mc-lore-name {
-    padding: 12px 16px;
+    box-sizing: border-box;
+    padding: 16px 20px;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.mc-lore-name-icon {
+    width: 32px;
+    height: 32px;
+    overflow: hidden;
+    flex: none;
+}
+
+.mc-lore-name-icon-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.4));
+}
+
+.mc-lore-name-text {
+    position: relative;
+    text-transform: uppercase;
     font-weight: 700;
     font-size: 14px;
-    text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-shadow: 0 0 7px rgba(0, 0, 0, 0.3);
+    margin: 0;
+    flex: 1;
 }
+
+/* ── Rarity foreground colors for item names ───────────────── */
+.piece-fg-common       { color: var(--mc-f) !important; }
+.piece-fg-uncommon     { color: var(--mc-a) !important; }
+.piece-fg-rare         { color: var(--mc-9) !important; }
+.piece-fg-epic         { color: var(--mc-5) !important; }
+.piece-fg-legendary    { color: var(--mc-6) !important; }
+.piece-fg-mythic       { color: var(--mc-d) !important; }
+.piece-fg-divine       { color: var(--mc-b) !important; }
+.piece-fg-special      { color: var(--mc-c) !important; }
+.piece-fg-very_special { color: var(--mc-c) !important; }
+
+/* ── Tooltip lore body ─────────────────────────────────────── */
 .mc-lore-body {
-    padding: 10px 16px 14px;
-    font-size: 12px;
+    padding: 16px 20px 18px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1.55;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;                    /* Firefox */
+    -ms-overflow-style: none;                /* IE 10+ */
 }
+.mc-lore-body::-webkit-scrollbar {
+    display: none;                            /* Chrome / Safari */
+}
+
 .mc-lore-line {
     display: block;
     min-height: 1.2em;
@@ -391,3 +564,337 @@
         height: 48px;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  Skills (SkyCrypt-style)                                       */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 24px;
+}
+@media (max-width: 768px) {
+    .skills-grid { grid-template-columns: 1fr; }
+}
+
+.skill-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.skill-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.skill-icon {
+    font-size: 16px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.skill-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+}
+
+.skill-level {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0bca51;
+    margin-left: auto;
+}
+
+.skill-level-gold {
+    color: #FFD700;
+}
+
+.skill-level-max {
+    color: #55FFFF;
+    text-shadow: 0 0 6px rgba(85, 255, 255, 0.5);
+}
+
+.skill-bar-track {
+    flex: 1;
+    position: relative;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.skill-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #0bca51, #2ecc71);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.skill-bar-fill-gold {
+    background: linear-gradient(90deg, #FFAA00, #FFD700);
+}
+
+.skill-bar-fill-max {
+    background: linear-gradient(90deg, #55FFFF, #00CED1, #55FFFF);
+    box-shadow: 0 0 8px rgba(85, 255, 255, 0.35);
+}
+
+.skill-bar-fill-max::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        -45deg,
+        transparent 25%,
+        rgba(200, 160, 255, 0.5) 37%,
+        rgba(230, 200, 255, 0.7) 50%,
+        rgba(200, 160, 255, 0.5) 63%,
+        transparent 75%
+    );
+    background-size: 300% 300%;
+    animation: mc-glint 2s linear infinite;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+@keyframes mc-glint {
+    0%   { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+}
+
+.skill-bar-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  Player Stats Grid (SkyCrypt-style)                            */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.stats-section {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.stat-icon {
+    font-size: 13px;
+    color: var(--stat-color, #AAAAAA);
+}
+
+.stat-name {
+    color: var(--stat-color, #AAAAAA);
+}
+
+.stat-value {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  Dungeons (SkyCrypt-style)                                      */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.dungeon-skill-bars {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 24px;
+    margin-bottom: 20px;
+}
+@media (max-width: 768px) {
+    .dungeon-skill-bars { grid-template-columns: 1fr; }
+}
+
+.skill-level-selected {
+    color: #0bca51;
+}
+
+.text-gold {
+    color: #FFD700 !important;
+}
+
+/* -- Dungeon summary info -- */
+.dungeon-summary {
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dungeon-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 13px;
+}
+
+.dungeon-stat-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+}
+
+.dungeon-stat-value {
+    color: #fff;
+    font-weight: 700;
+}
+
+.dungeon-stat-note {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 12px;
+}
+
+/* -- Floor sections -- */
+.dungeon-floors-section {
+    margin-bottom: 24px;
+}
+
+.dungeon-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #0bca51;
+    display: inline-block;
+}
+
+.dungeon-floor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+}
+
+.dungeon-floor-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dungeon-floor-master {
+    border-color: rgba(170, 0, 0, 0.25);
+}
+
+.dungeon-floor-header {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 2px solid #0bca51;
+    text-align: center;
+}
+
+.dungeon-floor-master .dungeon-floor-header {
+    border-bottom-color: #AA0000;
+}
+
+.dungeon-floor-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.dungeon-floor-body {
+    padding: 8px 14px 12px;
+}
+
+/* -- Expandable details -- */
+.dungeon-details-toggle {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 6px 0;
+    list-style: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dungeon-details-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.dungeon-details-toggle::before {
+    content: '▸';
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform 0.2s;
+}
+
+details[open] > .dungeon-details-toggle::before {
+    transform: rotate(90deg);
+}
+
+.dungeon-details-content {
+    padding: 4px 0 4px 18px;
+}
+
+.dungeon-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    font-size: 12px;
+}
+
+.dungeon-detail-label {
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 600;
+}
+
+.dungeon-detail-value {
+    color: #fff;
+    font-weight: 700;
+}
+
+/* -- Dungeon grades -- */
+.dungeon-grade { font-weight: 800; }
+.grade-Splus { color: #FFD700; text-shadow: 0 0 6px rgba(255, 215, 0, 0.5); }
+.grade-S { color: #FFD700; }
+.grade-A { color: #0bca51; }
+.grade-B { color: #5555FF; }
+.grade-C { color: #FFAA00; }
+.grade-D { color: #FF5555; }
+.grade-F { color: #AA0000; }

@@ -23,6 +23,8 @@
         "chart.js": "^4.5.1",
         "laravel-echo": "^2.3.0",
         "pusher-js": "^8.4.0",
+        "skinview3d": "^3.4.1",
+        "skyhelper-networth": "^2.7.2",
         "vue-chartjs": "^5.3.3"
     }
 }

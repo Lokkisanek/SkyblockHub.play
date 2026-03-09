@@ -486,9 +486,71 @@ class ItemParser
         // ── Item stats from lore ─────────────────────────────────
         $stats = self::extractStats($rawLore);
 
+        // ──────────────────────────────────────────────────────────
+        //  Append extra info lines to lore_html (SkyCrypt-style)
+        //  Mirrors processItems() from SkyCrypt's processing.js
+        // ──────────────────────────────────────────────────────────
+
+        // Recombobulated indicator
+        if ($recombobulated) {
+            $loreHtml[] = self::colorCodeToHtml('§8(Recombobulated)');
+        }
+
+        // Leather armor color
+        if ($color !== null) {
+            $loreHtml[] = '';  // empty line separator
+            $loreHtml[] = self::colorCodeToHtml('§7Color: ' . strtoupper($color));
+        }
+
+        // Obtained date (from ExtraAttributes.timestamp)
+        $timestamp = $extraAttributes['timestamp'] ?? null;
+        $obtainedStr = null;
+        if ($timestamp !== null) {
+            $obtainedStr = self::parseTimestamp($timestamp);
+        }
+        if ($obtainedStr !== null) {
+            $loreHtml[] = '';
+            $loreHtml[] = self::colorCodeToHtml('§7Obtained: §c' . $obtainedStr);
+        }
+
+        // Spawned for (co-op soulbound indicator)
+        $spawnedFor = $extraAttributes['spawnedFor'] ?? null;
+        if ($spawnedFor !== null) {
+            if ($obtainedStr === null) {
+                $loreHtml[] = '';
+            }
+            $cleanUuid = str_replace('-', '', $spawnedFor);
+            $loreHtml[] = self::colorCodeToHtml('§7By: §c' . $cleanUuid);
+        }
+
+        // Dungeon item quality
+        $baseStatBoost = $extraAttributes['baseStatBoostPercentage'] ?? null;
+        if ($baseStatBoost !== null) {
+            $qualityColor = ($baseStatBoost == 50) ? '§6' : '§c';
+            $loreHtml[] = '';
+            $loreHtml[] = self::colorCodeToHtml("§7Dungeon Item Quality: {$qualityColor}{$baseStatBoost}/50%");
+        }
+
+        // Obtained from dungeon floor
+        $itemTier = $extraAttributes['item_tier'] ?? null;
+        if ($itemTier !== null) {
+            $loreHtml[] = self::colorCodeToHtml("§7Obtained From: §bFloor {$itemTier}");
+        }
+
+        // Price paid at dark auction
+        $winningBid = $extraAttributes['winning_bid'] ?? null;
+        if ($winningBid !== null) {
+            $loreHtml[] = '';
+            $loreHtml[] = self::colorCodeToHtml('§7Price Paid at Dark Auction: §6' . number_format($winningBid) . ' Coins');
+        }
+
+        // ── UUID (unique per item instance) ────────────────
+        $uuid = $extraAttributes['uuid'] ?? null;
+
         return [
             'slot'           => $slot,
             'name'           => $name,
+            'uuid'           => $uuid,
             'skyblock_id'    => $skyblockId,
             'minecraft_id'   => $minecraftId,
             'damage'         => $damage,
@@ -731,6 +793,63 @@ class ItemParser
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    //  Extra lore helpers (mirrors SkyCrypt processItems logic)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Parse Hypixel timestamp into a human-readable date string.
+     *
+     * Timestamps come in two forms:
+     *   1. Numeric (unix milliseconds): 1660089600000
+     *   2. String (older format):       "7/24/20 10:17 PM"
+     */
+    private static function parseTimestamp(mixed $timestamp): ?string
+    {
+        if (is_numeric($timestamp)) {
+            // Unix milliseconds → Carbon date
+            $ts = (int) $timestamp;
+            if ($ts > 9999999999) {
+                $ts = (int) ($ts / 1000); // ms → s
+            }
+            try {
+                return \Carbon\Carbon::createFromTimestamp($ts)->format('M j, Y, g:i A');
+            } catch (\Exception) {
+                return null;
+            }
+        }
+
+        if (is_string($timestamp) && ! empty(trim($timestamp))) {
+            // Try parsing the old string format "M/d/yy h:mm a"
+            try {
+                return \Carbon\Carbon::parse($timestamp . ' EDT')->format('M j, Y, g:i A');
+            } catch (\Exception) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Abbreviate a large number like SkyCrypt's formatNumber.
+     * e.g. 57707012 → "57.71M", 1500 → "1.5K"
+     */
+    public static function formatNumberPublic(float $number, int $decimals = 2): string
+    {
+        $abs = abs($number);
+        if ($abs < 1000) {
+            return number_format($number);
+        }
+
+        $suffixes = ['', 'K', 'M', 'B', 'T'];
+        $idx      = (int) floor(log10($abs) / 3);
+        $idx      = min($idx, count($suffixes) - 1);
+        $short    = $number / pow(10, $idx * 3);
+
+        return rtrim(rtrim(number_format($short, $decimals, '.', ''), '0'), '.') . $suffixes[$idx];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     //  Text processing
     // ═══════════════════════════════════════════════════════════════════
 
@@ -739,7 +858,7 @@ class ItemParser
      */
     private static function stripColorCodes(string $text): string
     {
-        return preg_replace('/§[0-9a-fk-or]/i', '', $text);
+        return preg_replace('/§[0-9a-fk-or]/iu', '', $text);
     }
 
     /**
@@ -758,73 +877,72 @@ class ItemParser
     }
 
     /**
-     * Convert Minecraft color codes to inline HTML spans.
+     * Convert Minecraft color codes to HTML using CSS variables (SkyCrypt-style).
+     *
+     * Uses CSS custom properties (var(--mc-X)) for colors and CSS classes
+     * for formatting codes, enabling theme-aware rendering.
+     *
+     * NOTE: Uses regex splitting instead of byte-level string access because
+     * the § character (U+00A7) is 2 bytes in UTF-8 (\xC2\xA7).
      */
-    private static function colorCodeToHtml(string $text): string
+    public static function colorCodeToHtml(string $text): string
     {
-        $result       = '';
-        $currentColor = '#AAAAAA';
-        $bold         = false;
-        $italic       = false;
-        $underline    = false;
-        $strike       = false;
-        $buffer       = '';
+        // Split on §X codes, keeping the delimiters — like SkyCrypt's renderLore regex
+        $parts = preg_split('/(§[0-9a-fk-orA-FK-OR])/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
-        $i   = 0;
-        $len = strlen($text);
+        if ($parts === false || empty($parts)) {
+            return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
 
-        while ($i < $len) {
-            if ($text[$i] === '§' && $i + 1 < $len) {
-                // Flush buffer
-                if ($buffer !== '') {
-                    $result .= self::makeSpan($buffer, $currentColor, $bold, $italic, $underline, $strike);
-                    $buffer = '';
-                }
+        $output  = '';
+        $color   = null;
+        $formats = [];
 
-                $code = strtolower($text[$i + 1]);
+        foreach ($parts as $part) {
+            // Check if this part is a color/format code (§X)
+            if (preg_match('/^§([0-9a-fk-orA-FK-OR])$/u', $part, $m)) {
+                $code = strtolower($m[1]);
 
-                if (isset(self::MC_COLORS[$code])) {
-                    $currentColor = self::MC_COLORS[$code];
-                    $bold = $italic = $underline = $strike = false;
-                } elseif ($code === 'l') {
-                    $bold = true;
-                } elseif ($code === 'o') {
-                    $italic = true;
-                } elseif ($code === 'n') {
-                    $underline = true;
-                } elseif ($code === 'm') {
-                    $strike = true;
+                if (preg_match('/[0-9a-f]/', $code)) {
+                    // Color code: reset formatting, set new color
+                    $color   = $code;
+                    $formats = [];
+                } elseif (preg_match('/[k-o]/', $code)) {
+                    // Formatting code: add to active set
+                    $formats[$code] = true;
                 } elseif ($code === 'r') {
-                    $currentColor = '#AAAAAA';
-                    $bold = $italic = $underline = $strike = false;
+                    // Reset all
+                    $color   = null;
+                    $formats = [];
                 }
-
-                $i += 2;
             } else {
-                $buffer .= htmlspecialchars($text[$i], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $i++;
+                // Regular text — sanitize and wrap in a styled span
+                $safe = htmlspecialchars($part, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                if ($safe !== '') {
+                    $output .= self::makeSpan($safe, $color, $formats);
+                }
             }
         }
 
-        // Flush remaining
-        if ($buffer !== '') {
-            $result .= self::makeSpan($buffer, $currentColor, $bold, $italic, $underline, $strike);
-        }
-
-        return $result;
+        return $output;
     }
 
-    private static function makeSpan(string $text, string $color, bool $bold, bool $italic, bool $underline, bool $strike): string
+    /**
+     * Build an HTML <span> using CSS variable colors and formatting classes.
+     */
+    private static function makeSpan(string $text, ?string $color, array $formats): string
     {
-        $style = "color:{$color};";
-        if ($bold) $style .= 'font-weight:bold;';
-        if ($italic) $style .= 'font-style:italic;';
+        $attrs = '';
 
-        $deco = [];
-        if ($underline) $deco[] = 'underline';
-        if ($strike) $deco[] = 'line-through';
-        if ($deco) $style .= 'text-decoration:' . implode(' ', $deco) . ';';
+        if ($color !== null) {
+            $attrs .= " style=\"color: var(--mc-{$color})\"";
+        }
 
-        return "<span style=\"{$style}\">{$text}</span>";
+        if (!empty($formats)) {
+            $classes = array_map(fn($c) => 'mc-fmt-' . $c, array_keys($formats));
+            $attrs  .= ' class="' . implode(' ', $classes) . '"';
+        }
+
+        return "<span{$attrs}>{$text}</span>";
     }
 }
