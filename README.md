@@ -28,76 +28,84 @@ Webová aplikace pro hráče [Hypixel Skyblock](https://hypixel.net). Poskytuje 
 - [Composer](https://getcomposer.org/)
 - [Node.js 18+](https://nodejs.org/) + npm
 
-## Spuštění bez Dockeru
+## Lokální spuštění (Windows - PowerShell)
 
-### 1. Naklonuj repozitář a přejdi do složky
+Krátké shrnutí: potřebujete nainstalované `PHP` (8.2+), `Composer`, `Node.js` (18+), a volitelně databázi (SQLite funguje výchozí).
 
-```bash
+1) Klonování repozitáře a přechod do složky
+
+```powershell
 git clone <url-repozitare>
-cd SkyblockHub.play
+Set-Location SkyblockHub.play
 ```
 
-### 2. Nainstaluj PHP závislosti
+2) PHP závislosti
 
-```bash
+```powershell
 composer install
 ```
 
-### 3. Nastav prostředí
+3) Vytvoření a nastavení prostředí
 
-```bash
-cp .env.example .env
+```powershell
+Copy-Item .env.example .env
 php artisan key:generate
 ```
 
-### 4. Discord OAuth
+Otevřete `.env` v editoru a nastavte minimálně hodnoty pro databázi a Discord OAuth:
 
-Vytvoř aplikaci na [Discord Developer Portal](https://discord.com/developers/applications), zkopíruj Client ID a Secret a vlož do `.env`:
+- `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`
+
+Příklad pro Discord callback (lokálně):
 
 ```dotenv
-DISCORD_CLIENT_ID=tvoje_client_id
-DISCORD_CLIENT_SECRET=tvuj_client_secret
 DISCORD_REDIRECT_URI=http://localhost:8000/auth/discord/callback
 ```
 
-### 5. Databáze a migrace
+4) Migrace databáze (volitelné seed)
 
-SQLite databáze se vytvoří automaticky:
-
-```bash
-php artisan migrate
+```powershell
+php artisan migrate --seed
 ```
 
-### 6. Nainstaluj Node závislosti a zkompiluj assets
+5) Node závislosti a kompilace frontend assets
 
-Pro vývoj (live reload):
-```bash
+Pro vývoj (hot-reload):
+
+```powershell
 npm install
 npm run dev
 ```
 
-Pro produkci:
-```bash
+Pro produkci (minifikace):
+
+```powershell
 npm install
 npm run build
 ```
 
-### 7. Spusť aplikaci
+6) Spuštění aplikace a služeb (v samostatných PowerShell oknech)
 
-Každý z následujících příkazů spusť v **samostatném terminálu**:
+```powershell
+# Webový server (hlavní aplikace)
+php artisan serve --host=127.0.0.1 --port=8000
 
-```bash
-# Webový server
-php artisan serve
-
-# WebSocket server (potřebný pro real-time aktualizace Bazaaru)
+# WebSocket server (Reverb) - pro real-time aktualizace
 php artisan reverb:start
 
-# Queue worker (potřebný pro zpracování úloh na pozadí)
+# Queue worker - zpracování úloh na pozadí
 php artisan queue:work
 ```
 
-Aplikace poběží na **http://localhost:8000**.
+Aplikace bude dostupná na `http://localhost:8000`.
+
+7) Poznámky pro produkci
+
+- Spusťte `npm run build` a nastavte webserver (Nginx/Apache) směrovaný na `public/`.
+- Nakonfigurujte environment proměnné (databáze, cache, queue, reverb) a použijte proces manager (supervisor) pro `php artisan queue:work` a `php artisan reverb:start`.
+
+Pokud chcete, mohu připravit krátký PowerShell script, který provede většinu kroků automaticky.
 
 ## Užitečné odkazy
 
