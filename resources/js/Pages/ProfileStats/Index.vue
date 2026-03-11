@@ -56,6 +56,17 @@ const expandedBackpack = ref(null);   // index of opened backpack (null = all co
 const expandedEnderPage = ref(null);  // index of opened enderchest page
 const expandedRiftEnderPage = ref(null); // index of opened rift enderchest page
 
+/* ── Pets collapsible state ────────────────────────────────── */
+const showMorePets = ref(false);
+const showMissingPets = ref(false);
+
+/* ── Pets computed ─────────────────────────────────────────── */
+const activePet = computed(() => currentData.value?.pets?.pets?.find(p => p.active) ?? null);
+const displayUniquePets = computed(() => {
+    const unique = currentData.value?.pets?.uniquePets ?? [];
+    return unique.filter(p => !p.active);
+});
+
 /* ── Texture pack version key ──────────────────────────────── */
 const textureVersion = ref(0);
 provide('textureVersion', textureVersion);
@@ -116,6 +127,31 @@ const currentData = computed(() => currentProfile.value?.data ?? null);
 
 const skinUrl = computed(() => getSkinUrl(profileData.value?.uuid));
 const headUrl = computed(() => getHeadUrl(profileData.value?.uuid, 64));
+
+// ── Rank display helpers ─────────────────────────────────
+const rankPlusText = computed(() => {
+    const prefix = profileData.value?.rank?.prefix;
+    if (!prefix || !profileData.value?.rank?.plusColor) return '';
+    const match = prefix.match(/(\+{1,2})/);
+    return match ? match[1] : '';
+});
+
+const rankTextBefore = computed(() => {
+    const prefix = profileData.value?.rank?.prefix;
+    if (!prefix) return '';
+    const plusMatch = prefix.match(/(\+{1,2})/);
+    if (!plusMatch) return prefix + ' ';
+    return prefix.substring(0, plusMatch.index);
+});
+
+const rankTextAfter = computed(() => {
+    const prefix = profileData.value?.rank?.prefix;
+    if (!prefix) return '';
+    const plusMatch = prefix.match(/(\+{1,2})/);
+    if (!plusMatch) return '';
+    const afterPlus = prefix.substring(plusMatch.index + plusMatch[1].length);
+    return afterPlus ? afterPlus + ' ' : '] ';
+});
 
 // ── Skills ──────────────────────────────────────────────
 const mainSkillNames = ['farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting'];
@@ -227,6 +263,33 @@ const riftEnderchestPages = computed(() => {
     return pages;
 });
 const museumData = computed(() => currentData.value?.museum ?? {});
+
+/* ── Slayer computed data (new structure: { slayers, total_slayer_xp, total_coins_spent }) ── */
+const slayerData = computed(() => currentData.value?.slayers ?? { slayers: {}, total_slayer_xp: 0, total_coins_spent: 0 });
+
+/* ── Collections computed data ── */
+const collectionsData = computed(() => currentData.value?.collections ?? { categories: {}, totalCollections: 0, maxedCollections: 0 });
+
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+function romanNumeral(n) { return ROMAN[n] || String(n); }
+
+const ROMAN_FULL = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI'];
+function romanNumeralFull(n) { return ROMAN_FULL[n] || String(n); }
+
+const COLLECTION_CATEGORY_ICONS = {
+    FARMING: '🌾', MINING: '⛏️', COMBAT: '⚔️', FORAGING: '🌲', FISHING: '🎣', RIFT: '🌀', BOSS: '💀',
+};
+
+function slayerMaxTier(key) {
+    return key === 'vampire' ? 5 : 5;
+}
+
+function formatSlayerXP(slayer) {
+    const lvl = slayer.level;
+    if (!lvl) return '0 XP';
+    if (lvl.currentLevel >= lvl.maxLevel) return Number(lvl.xp).toLocaleString() + ' XP';
+    return Number(lvl.xpCurrent).toLocaleString() + ' / ' + Number(lvl.xpForNext).toLocaleString() + ' XP';
+}
 
 /* ── Formatting helpers ──────────────────────────────────── */
 function fNum(num, decimals = 2) {
@@ -461,6 +524,18 @@ onMounted(async () => {
                             <!-- Left: 3D Player Model (interactive, SkyCrypt-style) -->
                             <div class="hidden lg:block w-52 shrink-0">
                                 <div class="sticky top-20">
+                                    <!-- Username + Rank badge -->
+                                    <div class="player-name-rank">
+                                        <template v-if="profileData?.rank?.prefix">
+                                            <span class="rank-prefix" :style="{ color: profileData.rank.color }">
+                                                {{ rankTextBefore }}<!--
+                                            --><span v-if="rankPlusText" class="rank-plus" :style="{ color: profileData.rank.plusColor }">{{ rankPlusText }}</span><!--
+                                            --><span v-if="rankTextAfter" :style="{ color: profileData.rank.color }">{{ rankTextAfter }}</span>
+                                            </span>
+                                            <span class="player-username" :style="{ color: profileData.rank.color }">{{ profileData.username }}</span>
+                                        </template>
+                                        <span v-else class="player-username" style="color: #AAAAAA">{{ profileData?.username }}</span>
+                                    </div>
                                     <PlayerModel :uuid="profileData?.uuid" :width="208" :height="400" />
                                 </div>
                             </div>
@@ -755,31 +830,91 @@ onMounted(async () => {
                     <!--  PETS TAB                                          -->
                     <!-- ═══════════════════════════════════════════════════ -->
                     <div v-if="activeTab === 'pets'">
-                        <div v-if="currentData?.pets?.length > 0"
-                             class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                            <div v-for="(pet, i) in currentData.pets" :key="i"
-                                 class="border bg-surface-800 rounded p-3 relative"
-                                 :style="{ borderColor: petTierColors[pet.tier] || '#303030' }">
-                                <div v-if="pet.active"
-                                     class="absolute top-1 right-1 bg-profit/20 text-profit text-[10px] px-1.5 py-0.5 rounded">
-                                    ACTIVE
+                        <template v-if="currentData?.pets?.pets?.length > 0">
+                            <!-- ── Stats header ─────────────────────────── -->
+                            <div class="pets-stats-header">
+                                <div class="pets-stat">
+                                    <span class="pets-stat-label">Unique Pets</span>
+                                    <span class="pets-stat-value">{{ currentData.pets.amount }} / {{ currentData.pets.total }}</span>
                                 </div>
-                                <h4 class="text-xs font-bold text-center truncate"
-                                    :style="{ color: petTierColors[pet.tier] }">
-                                    {{ petName(pet.type) }}
-                                </h4>
-                                <div class="text-[10px] text-center uppercase mt-0.5"
-                                     :style="{ color: petTierColors[pet.tier] }">
-                                    {{ pet.tier }}
+                                <div class="pets-stat">
+                                    <span class="pets-stat-label">Unique Pet Skins</span>
+                                    <span class="pets-stat-value">{{ currentData.pets.amountSkins }}</span>
                                 </div>
-                                <div class="text-[10px] text-center text-neutral font-mono mt-1">
-                                    {{ fNum(pet.xp) }} XP
+                                <div class="pets-stat">
+                                    <span class="pets-stat-label">Pet Score</span>
+                                    <span class="pets-stat-value">{{ currentData.pets.petScore?.total ?? 0 }} <span class="pets-stat-mf">(+{{ currentData.pets.petScore?.magicFind ?? 0 }} ✯ Magic Find)</span></span>
                                 </div>
-                                <div v-if="pet.heldItem" class="text-[10px] text-center text-rarity-uncommon mt-1 truncate">
-                                    {{ pet.heldItem.replace(/_/g, ' ') }}
+                                <div class="pets-stat">
+                                    <span class="pets-stat-label">Total Candies Used</span>
+                                    <span class="pets-stat-value">{{ (currentData.pets.totalCandy ?? 0).toLocaleString() }}</span>
+                                </div>
+                                <div class="pets-stat">
+                                    <span class="pets-stat-label">Total Pet XP</span>
+                                    <span class="pets-stat-value">{{ fNum(currentData.pets.totalPetXp ?? 0) }}</span>
                                 </div>
                             </div>
-                        </div>
+
+                            <!-- ── Active Pet ───────────────────────────── -->
+                            <template v-if="activePet">
+                                <h3 class="pets-section-title">Active Pet</h3>
+                                <div class="pets-active-section">
+                                    <div class="pets-active-item">
+                                        <ItemSlot :item="activePet" />
+                                        <div class="pets-active-info">
+                                            <span class="pets-active-name" :style="{ color: petTierColors[activePet.tier] || '#AAAAAA' }">
+                                                {{ activePet.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- ── Other Pets (unique, not active) ──────── -->
+                            <h3 class="pets-section-title">Pets</h3>
+                            <div class="pets-grid">
+                                <div v-for="(pet, i) in displayUniquePets" :key="'u-'+i" class="pets-grid-item">
+                                    <ItemSlot :item="pet" />
+                                    <span class="pets-level-label" :style="{ color: petTierColors[pet.tier] || '#AAAAAA' }">
+                                        Lvl {{ pet.level?.level ?? '?' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- ── Show More Pets (duplicates) ──────────── -->
+                            <template v-if="currentData.pets.otherPets?.length > 0">
+                                <div class="pets-collapsible">
+                                    <button class="pets-collapsible-btn" @click="showMorePets = !showMorePets">
+                                        {{ showMorePets ? '▼' : '▶' }} Show More Pets ({{ currentData.pets.otherPets.length }})
+                                    </button>
+                                    <div v-if="showMorePets" class="pets-grid" style="margin-top: 8px;">
+                                        <div v-for="(pet, i) in currentData.pets.otherPets" :key="'o-'+i" class="pets-grid-item">
+                                            <ItemSlot :item="pet" />
+                                            <span class="pets-level-label" :style="{ color: petTierColors[pet.tier] || '#AAAAAA' }">
+                                                Lvl {{ pet.level?.level ?? '?' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- ── Missing Pets ─────────────────────────── -->
+                            <template v-if="currentData.pets.missing?.length > 0">
+                                <div class="pets-collapsible">
+                                    <button class="pets-collapsible-btn" @click="showMissingPets = !showMissingPets">
+                                        {{ showMissingPets ? '▼' : '▶' }} Missing Pets ({{ currentData.pets.missing.length }})
+                                    </button>
+                                    <div v-if="showMissingPets" class="pets-grid pets-missing-grid" style="margin-top: 8px;">
+                                        <div v-for="(pet, i) in currentData.pets.missing" :key="'m-'+i" class="pets-grid-item pets-missing-item">
+                                            <ItemSlot :item="pet" />
+                                            <span class="pets-level-label" style="color: #555;">
+                                                {{ pet.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
                         <div v-else class="text-neutral text-sm py-8 text-center">No pet data available.</div>
                     </div>
 
@@ -790,6 +925,17 @@ onMounted(async () => {
                         <div class="flex gap-8">
                             <div class="hidden lg:block w-52 shrink-0">
                                 <div class="sticky top-20">
+                                    <div class="player-name-rank">
+                                        <template v-if="profileData?.rank?.prefix">
+                                            <span class="rank-prefix" :style="{ color: profileData.rank.color }">
+                                                {{ rankTextBefore }}<!--
+                                            --><span v-if="rankPlusText" class="rank-plus" :style="{ color: profileData.rank.plusColor }">{{ rankPlusText }}</span><!--
+                                            --><span v-if="rankTextAfter" :style="{ color: profileData.rank.color }">{{ rankTextAfter }}</span>
+                                            </span>
+                                            <span class="player-username" :style="{ color: profileData.rank.color }">{{ profileData.username }}</span>
+                                        </template>
+                                        <span v-else class="player-username" style="color: #AAAAAA">{{ profileData?.username }}</span>
+                                    </div>
                                     <PlayerModel :uuid="profileData?.uuid" :width="208" :height="400" />
                                 </div>
                             </div>
@@ -858,22 +1004,49 @@ onMounted(async () => {
                     </div>
 
                     <!-- ═══════════════════════════════════════════════════ -->
-                    <!--  SLAYER TAB                                        -->
+                    <!--  SLAYER TAB  (SkyCrypt-style)                      -->
                     <!-- ═══════════════════════════════════════════════════ -->
                     <div v-if="activeTab === 'slayer'">
-                        <div v-if="currentData?.slayers && Object.keys(currentData.slayers).length > 0"
-                             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            <div v-for="(slayer, name) in currentData.slayers" :key="name"
-                                 class="border border-border bg-surface-800 rounded p-4">
-                                <h3 class="text-white font-bold capitalize mb-2 text-sm flex items-center gap-2">
-                                    <span class="text-lg">{{ SLAYER_ICONS[name] || '💀' }}</span>
-                                    {{ name }}
-                                </h3>
-                                <div class="flex items-end justify-between mb-2">
-                                    <span class="text-3xl font-bold text-rarity-epic">{{ slayer.level?.currentLevel ?? 0 }}</span>
-                                    <span class="text-xs text-neutral">/ {{ slayer.level?.maxLevel ?? 9 }}</span>
+                        <div v-if="slayerData && Object.keys(slayerData.slayers).length > 0">
+                            <!-- Total Slayer XP -->
+                            <div class="mb-4 text-sm text-neutral">
+                                Total Slayer XP: <b class="text-white">{{ Number(slayerData.total_slayer_xp).toLocaleString() }}</b>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div v-for="(slayer, key) in slayerData.slayers" :key="key"
+                                     class="slayer-card">
+                                    <!-- Header: icon + boss name -->
+                                    <div class="slayer-header">
+                                        <span class="text-lg">{{ SLAYER_ICONS[key] || '💀' }}</span>
+                                        <span class="slayer-boss-name">{{ slayer.name }}</span>
+                                    </div>
+
+                                    <!-- Tier kills table -->
+                                    <div class="slayer-tiers">
+                                        <div v-for="t in slayerMaxTier(key)" :key="t" class="slayer-tier-col">
+                                            <span class="slayer-tier-label">TIER {{ romanNumeral(t) }}</span>
+                                            <span class="slayer-tier-value">{{ (slayer.kills?.[t] ?? 0).toLocaleString() }}</span>
+                                        </div>
+                                        <div class="slayer-tier-col">
+                                            <span class="slayer-tier-label">TOTAL</span>
+                                            <span class="slayer-tier-value">{{ (slayer.total_kills ?? 0).toLocaleString() }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Level label -->
+                                    <div class="slayer-level-label">
+                                        {{ capitalize(key) }} Level {{ slayer.level?.currentLevel ?? 0 }}
+                                    </div>
+
+                                    <!-- XP progress bar -->
+                                    <div class="slayer-xp-bar-track">
+                                        <div class="slayer-xp-bar-fill"
+                                             :class="slayer.level?.currentLevel >= slayer.level?.maxLevel ? 'bar-maxed' : ''"
+                                             :style="{ width: ((slayer.level?.progress ?? 0) * 100) + '%' }"></div>
+                                        <span class="slayer-xp-bar-text">{{ formatSlayerXP(slayer) }}</span>
+                                    </div>
                                 </div>
-                                <div class="text-xs text-neutral font-mono">{{ fNum(slayer.xp) }} XP</div>
                             </div>
                         </div>
                         <div v-else class="text-neutral text-sm py-8 text-center">No slayer data available.</div>
@@ -1089,9 +1262,59 @@ onMounted(async () => {
                     </div>
 
                     <!-- ═══════════════════════════════════════════════════ -->
+                    <!--  COLLECTIONS TAB                                   -->
+                    <!-- ═══════════════════════════════════════════════════ -->
+                    <div v-if="activeTab === 'collections'">
+                        <div v-if="collectionsData && Object.keys(collectionsData.categories).length > 0">
+                            <!-- Maxed summary -->
+                            <div class="mb-4 text-sm text-neutral">
+                                Maxed Collections: <b class="text-white">{{ collectionsData.maxedCollections }}</b> / {{ collectionsData.totalCollections }}
+                            </div>
+
+                            <!-- Category sections -->
+                            <div class="space-y-5">
+                                <div v-for="(cat, catId) in collectionsData.categories" :key="catId" class="collection-category">
+                                    <!-- Category header -->
+                                    <div class="collection-category-header">
+                                        <span class="text-base">{{ COLLECTION_CATEGORY_ICONS[catId] || '📦' }}</span>
+                                        <span class="collection-category-name">{{ cat.name }}</span>
+                                        <span v-if="cat.maxedTiers >= cat.totalTiers" class="collection-max-badge">MAX!</span>
+                                        <span v-else class="collection-category-count">({{ cat.maxedTiers }} / {{ cat.totalTiers }} max)</span>
+                                    </div>
+
+                                    <!-- Collection items flow -->
+                                    <div class="collection-items-grid">
+                                        <div v-for="item in cat.collections" :key="item.id"
+                                             class="collection-chip"
+                                             :class="{ 'collection-chip-maxed': item.maxed, 'collection-chip-locked': !item.unlocked }">
+                                            <div class="collection-chip-top">
+                                                <span class="collection-chip-name" :class="{ 'text-green-400': item.maxed }">{{ item.name }}</span>
+                                                <span class="collection-chip-tier" :class="item.maxed ? 'text-amber-400' : 'text-neutral'">{{ romanNumeralFull(item.tier) }}</span>
+                                            </div>
+                                            <!-- Progress bar -->
+                                            <div class="collection-progress-track">
+                                                <div class="collection-progress-fill"
+                                                     :class="item.maxed ? 'bar-maxed' : ''"
+                                                     :style="{ width: (item.progress * 100) + '%' }"></div>
+                                            </div>
+                                            <div class="collection-chip-amount">
+                                                {{ item.amount > 0 ? Number(item.amount).toLocaleString() : '—' }}
+                                                <template v-if="item.nextTierAmount && !item.maxed">
+                                                    <span class="text-neutral/40">/ {{ Number(item.nextTierAmount).toLocaleString() }}</span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-neutral text-sm py-8 text-center">No collection data available.</div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════ -->
                     <!--  COMING SOON TABS                                  -->
                     <!-- ═══════════════════════════════════════════════════ -->
-                    <div v-if="['collections', 'misc'].includes(activeTab)"
+                    <div v-if="['misc'].includes(activeTab)"
                          class="border border-border bg-surface-800 rounded p-8 text-center">
                         <p class="text-neutral text-sm">{{ capitalize(activeTab) }} — Coming soon</p>
                         <p class="text-neutral/50 text-xs mt-1">This section is under development.</p>

@@ -8,8 +8,8 @@
  *   - MC-style lore tooltip (SkyCrypt rendering with CSS variables)
  *   - Click-to-pin tooltip for text selection / copying
  */
-import { computed, ref, inject, nextTick, onBeforeUnmount } from 'vue';
-import { getItemTextureUrl } from '@/utils/textures';
+import { computed, ref, watch, inject, nextTick, onBeforeUnmount } from 'vue';
+import { getItemTextureUrl, getColoredLeatherUrl } from '@/utils/textures';
 
 const props = defineProps({
     item: { type: Object, default: null },
@@ -25,6 +25,30 @@ const textureUrl = computed(() => {
     void textureVersion.value;
     return getItemTextureUrl(props.item);
 });
+
+/* Leather armor: canvas-colored texture (SkyCrypt approach) */
+const coloredLeatherUrl = ref(null);
+
+watch(() => [props.item?.texture_path, props.item?.color], () => {
+    const path = props.item?.texture_path;
+    if (!path || !path.startsWith('/leather/')) {
+        coloredLeatherUrl.value = null;
+        return;
+    }
+    const parts = path.split('/');
+    const type = parts[2];
+    const color = parts[3] ? '#' + parts[3] : (props.item?.color || null);
+    if (!type || !color) {
+        coloredLeatherUrl.value = null;
+        return;
+    }
+    getColoredLeatherUrl(type, color).then(url => {
+        coloredLeatherUrl.value = url;
+    });
+}, { immediate: true });
+
+/* Final display URL: colored leather > pack/vanilla texture */
+const displayUrl = computed(() => coloredLeatherUrl.value || textureUrl.value);
 
 /* Rarity → CSS class for background */
 const rarityBgClass = computed(() => {
@@ -161,8 +185,8 @@ onBeforeUnmount(() => {
         <div class="piece-hover-overlay"></div>
 
         <!-- Item texture -->
-        <img v-if="textureUrl"
-             :src="textureUrl"
+        <img v-if="displayUrl"
+             :src="displayUrl"
              :alt="item.name"
              class="piece-icon"
              loading="lazy"
@@ -196,8 +220,8 @@ onBeforeUnmount(() => {
                  :style="{ left: tooltipPos.x + 'px', top: tooltipPos.y + 'px' }">
                 <!-- Item name header with rarity background & icon -->
                 <div class="mc-lore-name" :class="rarityBgClass">
-                    <div v-if="textureUrl" class="mc-lore-name-icon">
-                        <img :src="textureUrl"
+                    <div v-if="displayUrl" class="mc-lore-name-icon">
+                        <img :src="displayUrl"
                              :alt="item.name"
                              class="mc-lore-name-icon-img"
                              draggable="false" />

@@ -344,6 +344,72 @@ export function getRarityBg(rarity) {
     return RARITY_BG[rarity] ?? 'rgba(170,170,170,0.10)';
 }
 
+/* ── Leather armor canvas coloring (SkyCrypt approach) ─── */
+
+const leatherCache = new Map();
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+}
+
+/**
+ * Generate a dye-colored leather armor texture using canvas compositing.
+ * Mirrors SkyCrypt's renderer.js renderColoredItem().
+ *
+ * Steps:
+ *  1. Fill canvas with dye color
+ *  2. Multiply with base texture (tints the leather)
+ *  3. destination-in to clip to base shape (preserve transparency)
+ *  4. (optional) Draw overlay on top for non-dyeable details
+ */
+export async function getColoredLeatherUrl(type, hexColor) {
+    const key = `${type}_${hexColor}`;
+    if (leatherCache.has(key)) return leatherCache.get(key);
+
+    try {
+        const base = await loadImage(`/img/textures/leather_${type}.png`);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = base.width;
+        canvas.height = base.height;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // 1. Fill with dye color
+        ctx.fillStyle = hexColor.startsWith('#') ? hexColor : '#' + hexColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 2. Multiply with base texture
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(base, 0, 0);
+
+        // 3. Clip to base shape (preserve transparency)
+        ctx.globalCompositeOperation = 'destination-in';
+        ctx.drawImage(base, 0, 0);
+
+        // 4. Try overlay (non-dyeable parts like buckles)
+        ctx.globalCompositeOperation = 'source-over';
+        try {
+            const overlay = await loadImage(`/img/textures/leather_${type}_overlay.png`);
+            ctx.drawImage(overlay, 0, 0);
+        } catch {
+            // No overlay texture — that's OK
+        }
+
+        const url = canvas.toDataURL('image/png');
+        leatherCache.set(key, url);
+        return url;
+    } catch {
+        return null;
+    }
+}
+
 /**
  * Preload enabled resource pack indices.
  */
