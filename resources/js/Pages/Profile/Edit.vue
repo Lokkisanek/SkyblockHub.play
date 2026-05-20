@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import LinkMinecraftModal from '@/Components/LinkMinecraftModal.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { useI18n } from '@/strings/useI18n';
@@ -10,9 +9,6 @@ import { useI18n } from '@/strings/useI18n';
 const { t } = useI18n();
 
 const props = defineProps({
-    mustVerifyEmail: {
-        type: Boolean,
-    },
     status: {
         type: String,
     },
@@ -54,15 +50,6 @@ function linkDirect() {
                     class="rounded-lg border border-[#0bca51]/30 bg-[#0bca51]/10 px-4 py-3 text-sm text-[#55FF55]"
                 >
                     {{ status }}
-                </div>
-
-                <!-- Profile Information -->
-                <div class="rounded-lg border border-border bg-surface-800 p-5 sm:p-6">
-                    <UpdateProfileInformationForm
-                        :must-verify-email="mustVerifyEmail"
-                        :status="status"
-                        class="max-w-xl"
-                    />
                 </div>
 
                 <!-- Minecraft Link Section -->

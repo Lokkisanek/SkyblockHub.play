@@ -504,7 +504,7 @@ function cardAccentClass(accent) {
             </div>
 
             <div class="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-                <div class="grid grid-cols-2 gap-8 sm:grid-cols-5">
+                <div class="grid grid-cols-2 gap-8 sm:grid-cols-4">
                     <div class="col-span-2 sm:col-span-1">
                         <Link :href="route('dashboard')" class="flex items-center gap-2 text-sm font-bold tracking-wide text-white">
                             <ApplicationLogo tone="light" class="h-7 w-7 shrink-0" />
@@ -521,28 +521,6 @@ function cardAccentClass(accent) {
                             <li><Link :href="route('event-timer')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.eventTimer') }}</Link></li>
                             <li><Link :href="route('mayors')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.mayorIntel') }}</Link></li>
                             <li><Link :href="route('profile-stats')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.profileStats') }}</Link></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="text-[10px] font-bold uppercase tracking-widest text-white/40">{{ $t('welcome.footer.comingSoon') }}</h3>
-                        <ul class="mt-3 space-y-2">
-                            <li>
-                                <Link v-if="isTestingAdmin" :href="route('crafting')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.craftingArbitrage') }}</Link>
-                                <span v-else class="text-xs text-white/20">{{ $t('welcome.footer.craftingArbitrage') }}</span>
-                            </li>
-                            <li>
-                                <Link v-if="isTestingAdmin" :href="route('bin-sniper')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.binSniper') }}</Link>
-                                <span v-else class="text-xs text-white/20">{{ $t('welcome.footer.binSniper') }}</span>
-                            </li>
-                            <li>
-                                <Link v-if="isTestingAdmin" :href="route('portfolio')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.portfolioTracker') }}</Link>
-                                <span v-else class="text-xs text-white/20">{{ $t('welcome.footer.portfolioTracker') }}</span>
-                            </li>
-                            <li>
-                                <Link v-if="isTestingAdmin" :href="route('dungeon-party')" class="text-xs text-white/35 transition hover:text-white">{{ $t('welcome.footer.dungeonPartyFinder') }}</Link>
-                                <span v-else class="text-xs text-white/20">{{ $t('welcome.footer.dungeonPartyFinder') }}</span>
-                            </li>
                         </ul>
                     </div>
 

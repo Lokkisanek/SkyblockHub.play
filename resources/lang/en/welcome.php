@@ -75,7 +75,6 @@ return [
     'footer' => [
         'tagline' => 'Hypixel SkyBlock trading dashboard',
         'modules' => 'Modules',
-        'comingSoon' => 'Coming Soon',
         'project' => 'Project',
         'legal' => 'Legal',
         
@@ -84,11 +83,6 @@ return [
         'eventTimer' => 'Event Timer',
         'mayorIntel' => 'Mayor Intel',
         'profileStats' => 'Profile Stats',
-        
-        'craftingArbitrage' => 'Crafting Arbitrage',
-        'binSniper' => 'BIN Sniper',
-        'portfolioTracker' => 'Portfolio Tracker',
-        'dungeonPartyFinder' => 'Dungeon Party Finder',
         
         'pricingFaq' => 'Pricing & FAQ',
         'privacyPolicy' => 'Privacy Policy',

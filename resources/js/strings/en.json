@@ -26,17 +26,6 @@
     },
     "profile": {
         "title": "Profile",
-        "info": {
-            "heading": "Profile Information",
-            "description": "Update your name and email address.",
-            "name": "Name",
-            "email": "Email",
-            "emailUnverified": "Your email is unverified.",
-            "resendVerification": "Click to resend verification email.",
-            "verificationSent": "A new verification link has been sent.",
-            "save": "Save",
-            "saved": "Saved."
-        },
         "minecraft": {
             "heading": "Minecraft Account",
             "linked": "Your Minecraft account is linked.",
@@ -227,7 +216,6 @@
         "footer": {
             "tagline": "Hypixel SkyBlock all in one platform",
             "modules": "Modules",
-            "comingSoon": "Coming Soon",
             "project": "Project",
             "legal": "Legal",
             "bazaarFlips": "Bazaar Flips",
@@ -235,10 +223,6 @@
             "eventTimer": "Event Timer",
             "mayorIntel": "Mayor Intel",
             "profileStats": "Profile Stats",
-            "craftingArbitrage": "Crafting Arbitrage",
-            "binSniper": "BIN Sniper",
-            "portfolioTracker": "Portfolio Tracker",
-            "dungeonPartyFinder": "Dungeon Party Finder",
             "about": "About",
             "github": "GitHub",
             "supportProject": "Support the project",
