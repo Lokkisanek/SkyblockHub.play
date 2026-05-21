@@ -1,9 +1,8 @@
 <script setup>
-import { computed } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import GuidesLayout from '@/Components/Guides/GuidesLayout.vue';
 import GuidesContent from '@/Components/Guides/GuidesContent.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { useI18n } from '@/strings/useI18n';
 
 const { t } = useI18n();
@@ -35,24 +34,9 @@ const props = defineProps({
     },
 });
 
-const pageTitle = computed(() =>
-    props.seo?.title || (props.guide ? `${props.guide.title} — ${t('guides.title')}` : t('guides.title')),
-);
 </script>
 
 <template>
-    <Head>
-        <title>{{ pageTitle }}</title>
-        <meta head-key="description" name="description" :content="seo.description" />
-        <link v-if="seo.canonical" head-key="canonical" rel="canonical" :href="seo.canonical" />
-        <meta head-key="og:type" property="og:type" content="article" />
-        <meta head-key="og:title" property="og:title" :content="seo.ogTitle || pageTitle" />
-        <meta head-key="og:description" property="og:description" :content="seo.ogDescription || seo.description" />
-        <meta v-if="seo.ogImage" head-key="og:image" property="og:image" :content="seo.ogImage" />
-        <meta head-key="twitter:title" name="twitter:title" :content="seo.ogTitle || pageTitle" />
-        <meta head-key="twitter:description" name="twitter:description" :content="seo.ogDescription || seo.description" />
-        <meta v-if="seo.ogImage" head-key="twitter:image" name="twitter:image" :content="seo.ogImage" />
-    </Head>
     <AuthenticatedLayout>
         <GuidesLayout
             v-if="guide"

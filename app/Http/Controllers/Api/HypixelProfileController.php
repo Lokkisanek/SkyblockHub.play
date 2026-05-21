@@ -2524,16 +2524,9 @@ class HypixelProfileController extends Controller
     {
         $pets = $member['pets_data']['pets'] ?? [];
         $result = [];
+        $petProfile = app(\App\Services\PetProfileDataService::class);
 
         $tierOrder = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
-        $mcColors = [
-            'COMMON' => '§f',
-            'UNCOMMON' => '§a',
-            'RARE' => '§9',
-            'EPIC' => '§5',
-            'LEGENDARY' => '§6',
-            'MYTHIC' => '§d',
-        ];
 
         foreach ($pets as $pet) {
             $type = $pet['type'] ?? 'UNKNOWN';
@@ -2548,62 +2541,24 @@ class HypixelProfileController extends Controller
             $levelData = $this->getPetLevel($xp, $tier, $maxLevel);
             $level = $levelData['level'];
 
-            // Display name
             $displayName = ucwords(strtolower(str_replace('_', ' ', $type)));
-            $colorCode = $mcColors[$tier] ?? '§f';
 
-            // Texture path (head hash, with cosmetic skin override)
             $headHash = self::PET_HEAD_TEXTURES[$type] ?? null;
             $texturePath = $headHash ? "/head/{$headHash}" : null;
 
-            // Override with cosmetic pet skin texture if equipped
             if ($skin && isset(self::PET_SKINS[$skin])) {
                 $texturePath = '/head/'.self::PET_SKINS[$skin];
             }
 
-            // Build lore (MC color-coded)
-            $lore = [];
-            $lore[] = ''; // empty line after name
-
-            // XP progress
-            if ($level < $maxLevel) {
-                $xpBar = $this->buildProgressBar($levelData['progress']);
-                $lore[] = "§7Progress to Level {$level} §8→ §7".($level + 1).': §e'.round($levelData['progress'] * 100, 1).'%';
-                $lore[] = $xpBar.' §e'.number_format($levelData['xpCurrent']).'§6/§e'.number_format($levelData['xpForNext']);
-            } else {
-                $lore[] = '§bMAX LEVEL';
-            }
-
-            // Held item
             $heldItemName = null;
             if ($heldItemId) {
-                $itemInfo = self::PET_ITEMS[$heldItemId] ?? null;
-                if ($itemInfo) {
-                    $itemColor = $mcColors[$itemInfo['tier'] ?? 'COMMON'] ?? '§f';
-                    $heldItemName = $itemInfo['name'];
-                    $lore[] = '';
-                    $lore[] = "§7Held Item: {$itemColor}{$itemInfo['name']}";
-                } else {
-                    $heldItemName = ucwords(strtolower(str_replace('_', ' ', $heldItemId)));
-                    $lore[] = '';
-                    $lore[] = "§7Held Item: §f{$heldItemName}";
-                }
+                $itemInfo = config('pet_held_items.'.$heldItemId);
+                $heldItemName = is_array($itemInfo)
+                    ? $itemInfo['name']
+                    : ucwords(strtolower(str_replace('_', ' ', $heldItemId)));
             }
 
-            // Candy used
-            if ($candyUsed > 0) {
-                $lore[] = '';
-                $lore[] = "§7Candy Used: §d{$candyUsed}";
-            }
-
-            // Rarity line
-            $lore[] = '';
-            $lore[] = "{$colorCode}§l{$tier} PET";
-
-            // Convert lore to HTML
-            $loreHtml = array_map([ItemParser::class, 'colorCodeToHtml'], $lore);
-
-            $result[] = [
+            $result[] = $petProfile->enrich([
                 'type' => $type,
                 'tier' => $tier,
                 'rarity' => strtolower($tier),
@@ -2616,8 +2571,7 @@ class HypixelProfileController extends Controller
                 'candyUsed' => $candyUsed,
                 'name' => "[Lvl {$level}] {$displayName}",
                 'texture_path' => $texturePath,
-                'lore_html' => $loreHtml,
-            ];
+            ]);
         }
 
         // Sort: active first, then by rarity desc, then by XP desc
@@ -2653,6 +2607,15 @@ class HypixelProfileController extends Controller
 
         // Pet score
         $petScore = $this->calculatePetScore($result, $tierOrder);
+
+        $mcColors = [
+            'COMMON' => '§f',
+            'UNCOMMON' => '§a',
+            'RARE' => '§9',
+            'EPIC' => '§5',
+            'LEGENDARY' => '§6',
+            'MYTHIC' => '§d',
+        ];
 
         // Missing pets
         $missingPets = $this->getMissingPets($result, $mcColors, $tierOrder);

@@ -129,7 +129,8 @@ class GuidesController extends Controller
             'canonical' => route('guides.show', $guide->slug),
             'ogTitle' => $title,
             'ogDescription' => str($description)->limit(200, '')->toString(),
-            'ogImage' => asset('img/logo-white.webp'),
+            'ogImage' => url('/img/logo-white.webp'),
+            'ogType' => 'article',
         ];
     }
 

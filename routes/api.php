@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BinSniperAnalysisController;
 use App\Http\Controllers\Api\DashboardSnapshotController;
 use App\Http\Controllers\Api\HypixelProfileController;
 use App\Http\Controllers\Api\LeaderboardController;
+use App\Http\Controllers\Api\MoneyMakingController;
 use App\Http\Controllers\CraftingArbitrageController;
 use App\Http\Controllers\KarmaController;
 use Illuminate\Http\Request;
@@ -27,6 +28,11 @@ Route::get('/profile/minecraft/{username}', [HypixelProfileController::class, 'p
     ->middleware('throttle:30,1')
     ->where('username', '[A-Za-z0-9_]{1,16}')
     ->name('api.profile.minecraft');
+
+Route::get('/v1/money-making/{username}', [MoneyMakingController::class, 'show'])
+    ->middleware(['web', 'auth', 'testing.admin', 'throttle:24,1'])
+    ->where('username', '[A-Za-z0-9_]{1,16}')
+    ->name('api.v1.money-making');
 
 /*
 |--------------------------------------------------------------------------

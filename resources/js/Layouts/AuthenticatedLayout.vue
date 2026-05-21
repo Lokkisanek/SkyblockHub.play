@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from '@/strings/useI18n';
-import { useSeo } from '@/composables/useSeo';
+import SeoHead from '@/Components/SeoHead.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import AuthSlidePanel from '@/Components/AuthSlidePanel.vue';
 import CookieConsent from '@/Components/CookieConsent.vue';
@@ -12,7 +12,6 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 
 const { t } = useI18n();
-useSeo();
 
 const showingNavigationDropdown = ref(false);
 const showAuthPanel = ref(false);
@@ -117,6 +116,7 @@ watch(
 </script>
 
 <template>
+    <SeoHead />
     <div>
         <div class="min-h-screen bg-surface-900" style="background-image: url('/background.webp'); background-size: cover; background-position: center; background-attachment: fixed;">
             <nav class="nav-wrapper relative">

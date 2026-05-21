@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import GuidesLayout from '@/Components/Guides/GuidesLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { useI18n } from '@/strings/useI18n';
 
 const { t } = useI18n();
@@ -31,16 +31,6 @@ defineProps({
 </script>
 
 <template>
-    <Head>
-        <title>{{ seo.title || t('guides.title') }}</title>
-        <meta head-key="description" name="description" :content="seo.description" />
-        <link v-if="seo.canonical" head-key="canonical" rel="canonical" :href="seo.canonical" />
-        <meta head-key="og:type" property="og:type" content="website" />
-        <meta head-key="og:title" property="og:title" :content="seo.title" />
-        <meta head-key="og:description" property="og:description" :content="seo.description" />
-        <meta head-key="twitter:title" name="twitter:title" :content="seo.title" />
-        <meta head-key="twitter:description" name="twitter:description" :content="seo.description" />
-    </Head>
     <AuthenticatedLayout>
         <GuidesLayout
             :guide-groups="guideGroups"

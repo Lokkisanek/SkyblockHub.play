@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from '@/strings/useI18n';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import WelcomeModuleIcon from '@/Components/WelcomeModuleIcon.vue';
@@ -40,10 +40,6 @@ const modulesSubtitleKey = computed(() => (isLoggedIn.value ? 'welcome.loggedInC
 
 const searchUsername = ref('');
 const searchError = ref('');
-const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000';
-const canonicalUrl = `${siteOrigin}/`;
-const pageTitle = 'Hypixel SkyBlock Tools - Bazaar Flips, NPC Arbitrage, Profiles';
-const pageDescription = 'SkyblockHub is a clean Hypixel SkyBlock dashboard for Bazaar flips, NPC arbitrage, profile analysis, mayor perks, and event timing.';
 const currentYear = new Date().getFullYear();
 
 const featureCards = computed(() => [
@@ -228,20 +224,6 @@ function cardAccentClass(accent) {
 </script>
 
 <template>
-    <Head>
-        <title>{{ pageTitle }}</title>
-        <meta head-key="description" name="description" :content="pageDescription" />
-        <meta head-key="robots" name="robots" content="index,follow" />
-        <link head-key="canonical" rel="canonical" :href="canonicalUrl" />
-        <meta head-key="og:title" property="og:title" :content="`${pageTitle} - SkyblockHub`" />
-        <meta head-key="og:description" property="og:description" :content="pageDescription" />
-        <meta head-key="og:type" property="og:type" content="website" />
-        <meta head-key="og:image" property="og:image" :content="`${siteOrigin}/img/logo-white.webp`" />
-        <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
-        <meta head-key="twitter:title" name="twitter:title" :content="`${pageTitle} - SkyblockHub`" />
-        <meta head-key="twitter:description" name="twitter:description" :content="pageDescription" />
-    </Head>
-
     <AuthenticatedLayout>
         <div class="pt-16 pb-28 sm:pt-20 sm:pb-32 lg:pt-24 lg:pb-40">
             <div class="mx-auto max-w-7xl space-y-16 px-4 sm:space-y-20 sm:px-6 lg:space-y-24 lg:px-8">

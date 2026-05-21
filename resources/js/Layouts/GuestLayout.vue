@@ -1,12 +1,11 @@
 <script setup>
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Link } from '@inertiajs/vue3';
-import { useSeo } from '@/composables/useSeo';
-
-useSeo();
+import SeoHead from '@/Components/SeoHead.vue';
 </script>
 
 <template>
+    <SeoHead />
     <div
         class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
     >

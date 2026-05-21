@@ -50,13 +50,11 @@ export const guideGroups = [
 
 export const guideExternalTools = [
     { label: 'Hypixel Wiki', url: 'https://wiki.hypixel.net/' },
-    { label: 'SkyCrypt', url: 'https://sky.shiiyu.moe/' },
     { label: 'COFL Sky', url: 'https://sky.coflnet.com/' },
     { label: 'Fandom Wiki', url: 'https://hypixel-skyblock.fandom.com/' },
 ];
 
 export const guideQuickLinks = [
-    { prompt: 'Need your stats?', label: 'SkyCrypt', url: 'https://sky.shiiyu.moe/' },
     { prompt: 'Checking prices / flipping?', label: 'COFL', url: 'https://sky.coflnet.com/' },
     { prompt: 'Mechanics lookup?', label: 'Hypixel Wiki', url: 'https://wiki.hypixel.net/' },
     { prompt: 'Detailed wiki?', label: 'Fandom Wiki', url: 'https://hypixel-skyblock.fandom.com/' },

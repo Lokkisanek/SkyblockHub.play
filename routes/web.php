@@ -17,6 +17,7 @@ use App\Http\Controllers\FunnelAnalyticsController;
 use App\Http\Controllers\GuidesController;
 use App\Http\Controllers\LeaderboardsController;
 use App\Http\Controllers\MayorController;
+use App\Http\Controllers\MoneyMakingPageController;
 use App\Http\Controllers\NpcFlipsController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PortfolioController;
@@ -159,6 +160,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/portfolio/sell', [PortfolioController::class, 'sell'])->name('portfolio.sell');
         Route::delete('/portfolio', [PortfolioController::class, 'destroy'])->name('portfolio.destroy');
 
+        Route::get('/money-making', MoneyMakingPageController::class)->name('money-making');
+
         // Crafting Arbitrage
         Route::get('/crafting', [CraftingArbitrageController::class, 'index'])->name('crafting');
 
@@ -180,12 +183,25 @@ Route::get('/sitemap.xml', function () {
         ['url' => url('/dashboard'), 'changefreq' => 'daily', 'priority' => '0.9'],
         ['url' => url('/bazaar'), 'changefreq' => 'daily', 'priority' => '0.9'],
         ['url' => url('/npc-flips'), 'changefreq' => 'daily', 'priority' => '0.8'],
-        ['url' => url('/profile-stats'), 'changefreq' => 'weekly', 'priority' => '0.7'],
+        ['url' => url('/profile-stats'), 'changefreq' => 'weekly', 'priority' => '0.8'],
         ['url' => url('/event-timer'), 'changefreq' => 'daily', 'priority' => '0.8'],
+        ['url' => url('/mayors'), 'changefreq' => 'daily', 'priority' => '0.75'],
         ['url' => url('/guides'), 'changefreq' => 'weekly', 'priority' => '0.8'],
         ['url' => url('/trust-index'), 'changefreq' => 'weekly', 'priority' => '0.7'],
         ['url' => url('/leaderboards'), 'changefreq' => 'weekly', 'priority' => '0.7'],
+        ['url' => url('/leaderboards/info'), 'changefreq' => 'monthly', 'priority' => '0.5'],
+        ['url' => url('/about'), 'changefreq' => 'monthly', 'priority' => '0.5'],
+        ['url' => url('/privacy'), 'changefreq' => 'yearly', 'priority' => '0.3'],
+        ['url' => url('/terms'), 'changefreq' => 'yearly', 'priority' => '0.3'],
     ];
+
+    foreach (\App\Models\Guide::published()->orderBy('slug')->pluck('slug') as $slug) {
+        $urls[] = [
+            'url' => route('guides.show', $slug),
+            'changefreq' => 'monthly',
+            'priority' => '0.6',
+        ];
+    }
 
     foreach ($urls as $page) {
         $sitemap .= '  <url>'.PHP_EOL;

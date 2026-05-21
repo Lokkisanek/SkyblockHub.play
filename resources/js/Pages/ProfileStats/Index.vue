@@ -508,6 +508,34 @@ function timeAgo(ts) {
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function petName(t) { return t.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
 
+const PET_STAT_ABBREV = {
+    'Fishing Speed': 'FS',
+    'Sea Creature Chance': 'SCC',
+    'Strength': 'Str',
+    'Farming Fortune': 'FmFrt',
+    'Mining Fortune': 'MnFrt',
+    'Mining Speed': 'MnSpd',
+    'Foraging Fortune': 'FgFrt',
+    'Magic Find': 'MF',
+    'Critical Chance': 'CC',
+    'Critical Damage': 'CD',
+    'Defense': 'Def',
+    'Speed': 'Spd',
+};
+
+function petBonusLine(pet) {
+    const stats = pet?.profile?.stats;
+    if (!stats || typeof stats !== 'object') return null;
+    const parts = [];
+    for (const [label, stat] of Object.entries(stats)) {
+        if (!stat?.value) continue;
+        const ab = PET_STAT_ABBREV[label] || label;
+        const v = stat.percent ? `${stat.value}%` : stat.value;
+        parts.push(`${v} ${ab}`);
+    }
+    return parts.length ? parts.join(' // ') : null;
+}
+
 /** Minimal item shape for {@link getItemTextureUrl} from API `texture_path`. */
 function collectionTextureItem(item) {
     return item?.texture_path ? { texture_path: item.texture_path } : null;
@@ -1190,6 +1218,32 @@ onMounted(async () => {
                                             <span class="pets-active-name" :style="{ color: petTierColors[activePet.tier] || '#AAAAAA' }">
                                                 {{ activePet.name }}
                                             </span>
+                                            <p v-if="petBonusLine(activePet)" class="pets-active-bonus text-neutral text-sm">
+                                                {{ t('profileStats.petBonus') }}: {{ petBonusLine(activePet) }}
+                                            </p>
+                                            <dl v-if="activePet.profile" class="pets-active-meta">
+                                                <template v-if="activePet.profile.isMaxLevel">
+                                                    <div class="pets-meta-row">
+                                                        <dt>{{ t('profileStats.petMaxLevel') }}</dt>
+                                                    </div>
+                                                </template>
+                                                <div v-else-if="activePet.profile.level" class="pets-meta-row">
+                                                    <dt>{{ t('profileStats.level') }}</dt>
+                                                    <dd>{{ activePet.profile.level }} / {{ activePet.profile.maxLevel }}</dd>
+                                                </div>
+                                                <div v-if="activePet.profile.heldItem?.name" class="pets-meta-row">
+                                                    <dt>{{ t('profileStats.petHeldItem') }}</dt>
+                                                    <dd>{{ activePet.profile.heldItem.name }}</dd>
+                                                </div>
+                                                <div v-if="activePet.profile.candyUsed > 0" class="pets-meta-row">
+                                                    <dt>{{ t('profileStats.petCandy') }}</dt>
+                                                    <dd>{{ activePet.profile.candyUsed }}</dd>
+                                                </div>
+                                                <div v-if="activePet.profile.perks?.length" class="pets-meta-row">
+                                                    <dt>{{ t('profileStats.petPerks') }}</dt>
+                                                    <dd>{{ activePet.profile.perks.map((p) => p.name).join(', ') }}</dd>
+                                                </div>
+                                            </dl>
                                         </div>
                                     </div>
                                 </div>

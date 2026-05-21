@@ -16,29 +16,32 @@
             };
         </script>
 
-        <title inertia>SkyblockHub - Hypixel SkyBlock Intelligence</title>
-        <meta name="description" inertia content="SkyblockHub is a Hypixel SkyBlock intelligence dashboard for Bazaar flips, NPC arbitrage, crafting opportunities, profile stats, mayor tracking, and event timers.">
+        <title inertia>SkyblockHub — Hypixel SkyBlock Intelligence</title>
+        <meta name="description" inertia content="SkyblockHub is a Hypixel SkyBlock intelligence dashboard for Bazaar flips, NPC arbitrage, profile stats, money-making, mayor tracking, and event timers.">
         <meta name="theme-color" content="#0f172a">
-        <meta name="robots" content="index, follow">
+        <meta name="application-name" content="SkyblockHub">
+        <meta name="robots" inertia content="index, follow">
         <meta name="language" content="English">
         <link rel="canonical" inertia href="">
-        
-        <!-- Open Graph / Social Media -->
+
         <meta property="og:site_name" content="SkyblockHub">
         <meta property="og:type" inertia content="website">
-        <meta property="og:title" inertia content="SkyblockHub - Hypixel SkyBlock Intelligence">
-        <meta property="og:description" inertia content="SkyblockHub is a Hypixel SkyBlock intelligence dashboard for Bazaar flips, NPC arbitrage, crafting opportunities, profile stats, mayor tracking, and event timers.">
-        <meta property="og:image" inertia content="{{ asset('img/logo-white.webp') }}">
+        <meta property="og:title" inertia content="SkyblockHub — Hypixel SkyBlock Intelligence">
+        <meta property="og:description" inertia content="SkyblockHub is a Hypixel SkyBlock intelligence dashboard for Bazaar flips, NPC arbitrage, profile stats, money-making, mayor tracking, and event timers.">
+        <meta property="og:image" inertia content="{{ url('/img/logo-white.webp') }}">
         <meta property="og:url" inertia content="">
-        
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" inertia content="SkyblockHub - Hypixel SkyBlock Intelligence">
-        <meta name="twitter:description" inertia content="SkyblockHub is a Hypixel SkyBlock intelligence dashboard for Bazaar flips, NPC arbitrage, crafting opportunities, profile stats, mayor tracking, and event timers.">
-        <meta name="twitter:image" inertia content="{{ asset('img/logo-white.webp') }}">
 
-        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" inertia content="SkyblockHub — Hypixel SkyBlock Intelligence">
+        <meta name="twitter:description" inertia content="SkyblockHub is a Hypixel SkyBlock intelligence dashboard for Bazaar flips, NPC arbitrage, profile stats, money-making, mayor tracking, and event timers.">
+        <meta name="twitter:image" inertia content="{{ url('/img/logo-white.webp') }}">
+
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
+        <link rel="icon" href="{{ asset('favicon.webp') }}" type="image/webp" sizes="32x32">
+        <link rel="icon" href="{{ asset('img/logo-white.webp') }}" type="image/webp" sizes="512x512">
         <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.webp') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.webp') }}">
+        <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

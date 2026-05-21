@@ -826,7 +826,7 @@ async function scheduleTimestampTrigger(eventCard) {
         body: `${eventCard.name} starts in 5 minutes.`,
         tag: `event-timer-${eventCard.key}`,
         icon: getNotificationIcon(eventCard.key),
-        badge: '/favicon.ico',
+        badge: '/favicon.webp',
         renotify: false,
         timestamp: fireAt,
         showTrigger: trigger,
@@ -845,7 +845,7 @@ async function notifyNow(title, body, tag, data = {}) {
     console.log('[EventTimer] notifyNow called:', { title, tag, swReg: !!swRegistration.value, permission: Notification?.permission });
 
     const icon = getNotificationIcon(data.eventKey || tag.replace('event-timer-confirm-', '').replace('event-timer-now-', ''));
-    const badge = '/favicon.ico';
+    const badge = '/favicon.webp';
 
     // Prefer showing via SW registration (works even when tab is in background).
     const reg = swRegistration.value;
